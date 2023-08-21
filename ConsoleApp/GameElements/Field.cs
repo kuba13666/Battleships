@@ -1,6 +1,5 @@
 ﻿using ConsoleApp.Enums;
 using CSharpFunctionalExtensions;
-using System.Security.Cryptography.X509Certificates;
 
 namespace ConsoleApp.GameElements
 {
@@ -45,12 +44,19 @@ namespace ConsoleApp.GameElements
 
         protected override bool EqualsCore(Field other)
         {
-            return Coordinate.Equals(other._coordinate);
+            return Coordinate.Equals(other.Coordinate);
         }
 
         protected override int GetHashCodeCore()
         {
-            throw new NotImplementedException();
+            unchecked
+            {
+                int hashCode = Coordinate.GetHashCode();
+                hashCode = (hashCode * 397) ^ IsOccupied.GetHashCode();
+                hashCode = (hashCode * 397) ^ Missed.GetHashCode();
+                hashCode = (hashCode * 397) ^ Hit.GetHashCode();
+                return hashCode;
+            }
         }
     }
 }

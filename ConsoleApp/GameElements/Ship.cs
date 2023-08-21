@@ -2,33 +2,21 @@
 {
     public class Ship
     {
-        public List<Presence> Presences => _presences;
-        private List<Presence> _presences { get; set; }
-        public bool HasSunk => _hasSunk;
-        private bool _hasSunk { get; set; }
-        private Ship(List<Coordinate> coordinates)
+        public List<Field> FieldsOccupied => _fieldsOccupied;
+        private List<Field> _fieldsOccupied { get; set; }
+        public bool HasSunk => FieldsOccupied.All(field => field.Hit);
+        private Ship(List<Field> fields)
         {
-            _presences = new List<Presence>();
-            foreach (Coordinate coord in coordinates)
+            _fieldsOccupied = fields;
+            foreach (var field in FieldsOccupied)
             {
-                _presences.Add(Presence.Create(coord));
+                field.OccupyField();
             }
         }
-        public static Ship Create(List<Coordinate> coordinates)
+        public static Ship Create(List<Field> fieldsOccupied)
         {
-            return new Ship(coordinates);
+            return new Ship(fieldsOccupied);
         }
-        public void Hit(Coordinate coord)
-        {
-            var presence = Presences.FirstOrDefault(presence => presence.Equals(Presence.Create(coord)));
-            if (presence != null)
-            {
-                presence.DamageShip();
-                if (Presences.All(presence => presence.IsDamaged))
-                {
-                    _hasSunk = true;
-                }
-            }
-        }
+
     }
 }

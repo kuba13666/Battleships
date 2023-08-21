@@ -18,19 +18,19 @@ namespace Tests
         {
             var battlefield = Battlefield.Create();
             var ship = battlefield.Ships.First();
-            var presence =ship.Presences.First();
-            battlefield.AttemptShot(presence.Coordinate);
-            Assert.True(presence.IsDamaged);
+            var fieldOccupied = ship.FieldsOccupied.First();
+            battlefield.AttemptShot(fieldOccupied.Coordinate);
+            Assert.True(fieldOccupied.Hit);
         }
         [Fact]
         public void WhenLastShipsPresenceGetsShotAtItSinksAndAllFieldsSurroundingAreMarked()
         {
             var battlefield = Battlefield.Create();
             var ship = battlefield.Ships.First();
-            foreach (var presence in ship.Presences)
+            foreach (var fieldOccupied in ship.FieldsOccupied)
             {
-                battlefield.AttemptShot(presence.Coordinate);
-                Assert.True(presence.IsDamaged);
+                battlefield.AttemptShot(fieldOccupied.Coordinate);
+                Assert.True(fieldOccupied.Hit);
             }
             Assert.True(ship.HasSunk);
         }
@@ -52,8 +52,8 @@ namespace Tests
             battlefield.InitializeFields();
             battlefield.SpawnShipAtRandom(shipSize);
             var ship = battlefield.Ships.First();
-            var presence = ship.Presences.First();
-            var shipCoordinates = battlefield.FindASpotForShip(shipSize, presence.Coordinate.Column, presence.Coordinate.Row, Direction.Right);
+            var fieldOccupied = ship.FieldsOccupied.First();
+            var shipCoordinates = battlefield.FindASpotForShip(shipSize, fieldOccupied.Coordinate.Column, fieldOccupied.Coordinate.Row, Direction.Right);
             Assert.Empty(shipCoordinates);
             Assert.True(battlefield.Ships.Count == 1);
         }
@@ -64,10 +64,10 @@ namespace Tests
             var battlefield = Battlefield.Create();
             foreach (var ship in battlefield.Ships)
             {
-                foreach (var presence in ship.Presences)
+                foreach (var fieldOccupied in ship.FieldsOccupied)
                 {
-                    battlefield.AttemptShot(presence.Coordinate);
-                    Assert.True(presence.IsDamaged);
+                    battlefield.AttemptShot(fieldOccupied.Coordinate);
+                    Assert.True(fieldOccupied.Hit);
                 }
             }
             Assert.True(battlefield.IsGameWon());
