@@ -4,8 +4,8 @@
     {
         public List<Presence> Presences => _presences;
         private List<Presence> _presences { get; set; }
-        public bool HasSinked => _hasSinked;
-        private bool _hasSinked { get; set; }
+        public bool HasSunk => _hasSunk;
+        private bool _hasSunk { get; set; }
         private Ship(List<Coordinate> coordinates)
         {
             _presences = new List<Presence>();
@@ -26,7 +26,7 @@
                 presence.DamageShip();
                 if (Presences.All(presence => presence.IsDamaged))
                 {
-                    _hasSinked = true;
+                    _hasSunk = true;
                 }
             }
         }

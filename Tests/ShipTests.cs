@@ -23,7 +23,7 @@ namespace Tests
             ship.Hit(shipCoordinates[1]);
 
             Assert.True(ship.Presences.All(presence => presence.IsDamaged));
-            Assert.True(ship.HasSinked);
+            Assert.True(ship.HasSunk);
         }
     }
 }

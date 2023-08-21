@@ -32,7 +32,7 @@ namespace Tests
                 battlefield.AttemptShot(presence.Coordinate);
                 Assert.True(presence.IsDamaged);
             }
-            Assert.True(ship.HasSinked);
+            Assert.True(ship.HasSunk);
         }
 
         [Fact]
@@ -40,7 +40,7 @@ namespace Tests
         {
             var battlefield = new Battlefield();
             battlefield.InitializeFields();
-            battlefield.SpanShipAtRandom(4);
+            battlefield.SpawnShipAtRandom(4);
             Assert.True(battlefield.Ships.Count == 1);
         }
 
@@ -48,12 +48,13 @@ namespace Tests
         public void WhenTryToSpanShipOnOccupiedAreaShipWillNotGetPlaced()
         {
             var battlefield = new Battlefield();
+            int shipSize = 4;
             battlefield.InitializeFields();
-            battlefield.SpanShipAtRandom(4);
+            battlefield.SpawnShipAtRandom(shipSize);
             var ship = battlefield.Ships.First();
             var presence = ship.Presences.First();
-            var success = battlefield.FindASpotForShip(4, presence.Coordinate.Column, presence.Coordinate.Row, Orientation.Horizontal);
-            Assert.False(success);
+            var shipCoordinates = battlefield.FindASpotForShip(shipSize, presence.Coordinate.Column, presence.Coordinate.Row, Direction.Right);
+            Assert.Empty(shipCoordinates);
             Assert.True(battlefield.Ships.Count == 1);
         }
 

@@ -1,6 +1,7 @@
 ﻿using ConsoleApp.Enums;
 using System;
 using System.Data.Common;
+using System.Net.Http.Headers;
 
 namespace ConsoleApp.GameElements
 {
@@ -18,15 +19,15 @@ namespace ConsoleApp.GameElements
         {
             var battlefield = new Battlefield();
             battlefield.InitializeFields();
-            battlefield.SpanShipAtRandom(4);
-            battlefield.SpanShipAtRandom(4);
-            battlefield.SpanShipAtRandom(5);
+            battlefield.SpawnShipAtRandom(4);
+            battlefield.SpawnShipAtRandom(4);
+            battlefield.SpawnShipAtRandom(5);
             return battlefield;
         }
 
         public bool IsGameWon()
         {
-            return Ships.All(ship => ship.HasSinked);
+            return Ships.All(ship => ship.HasSunk);
         }
         public void InitializeFields()
         {
@@ -39,59 +40,69 @@ namespace ConsoleApp.GameElements
             }
         }
 
-        public void SpanShipAtRandom(int shipSize)
+        public void SpawnShipAtRandom(int shipSize)
         {
             var random = new Random();
-            var success = false;
-
-            while (!success)
+            var currentShipCoordinates = new List<Coordinate>();
+            while (currentShipCoordinates.Count != shipSize)
             {
                 Column startingColumn = (Column)random.Next(0, 10);
                 Row startingRow = (Row)random.Next(0, 10);
-                Orientation orientation = (Orientation)random.Next(0, 2);
-                success = FindASpotForShip(shipSize, startingColumn, startingRow, orientation);
+                Direction direction = (Direction)random.Next(0, 2);
+                currentShipCoordinates = FindASpotForShip(shipSize, startingColumn, startingRow, direction);
             }
+            AddShip(currentShipCoordinates);
         }
 
-        public bool FindASpotForShip(int shipSize, Column startingColumn, Row startingRow, Orientation orientation)
+        public List<Coordinate> FindASpotForShip(int shipSize, Column startingColumn, Row startingRow, Direction direction)
         {
-            bool success;
             var currentShipCoordinates = new List<Coordinate>();
-            if (orientation == Orientation.Horizontal && (int)startingColumn + shipSize <= 9)
-                for (int i = 0; i < shipSize; i++)
+            try
+            {
+                switch (direction)
                 {
-                    if (Fields.First(field => field.Equals(Field.Create(startingColumn + i, startingRow))).IsOccupied)
+                    case Direction.Up:
+                        for (int i = 0; i < shipSize; i++)
+                        {
+                            if (Fields.First(field => field.Equals(Field.Create(startingColumn, startingRow - i))).IsOccupied)
+                                break;
+                            currentShipCoordinates.Add(Coordinate.Create(startingColumn, startingRow - i));
+                        }
                         break;
-                    currentShipCoordinates.Add(Coordinate.Create(startingColumn + i, startingRow));
-                }
-            else if (orientation == Orientation.Horizontal && (int)startingColumn - shipSize >= 0)
-                for (int i = 0; i < shipSize; i++)
-                {
-                    if (Fields.First(field => field.Equals(Field.Create(startingColumn - i, startingRow))).IsOccupied)
+                    case Direction.Down:
+                        for (int i = 0; i < shipSize; i++)
+                        {
+                            if (Fields.First(field => field.Equals(Field.Create(startingColumn, startingRow + i))).IsOccupied)
+                                break;
+                            currentShipCoordinates.Add(Coordinate.Create(startingColumn, startingRow + i));
+                        }
                         break;
-                    currentShipCoordinates.Add(Coordinate.Create(startingColumn - i, startingRow));
-                }
-            else if ((int)startingRow + shipSize <= 9)
-                for (int i = 0; i < shipSize; i++)
-                {
-                    if (Fields.First(field => field.Equals(Field.Create(startingColumn, startingRow + i))).IsOccupied)
+                    case Direction.Left:
+                        for (int i = 0; i < shipSize; i++)
+                        {
+                            if (Fields.First(field => field.Equals(Field.Create(startingColumn - i, startingRow))).IsOccupied)
+                                break;
+                            currentShipCoordinates.Add(Coordinate.Create(startingColumn - i, startingRow));
+                        }
                         break;
-                    currentShipCoordinates.Add(Coordinate.Create(startingColumn, startingRow + i));
-                }
-            else if ((int)startingRow - shipSize >= 0)
-                for (int i = 0; i < shipSize; i++)
-                {
-                    if (Fields.First(field => field.Equals(Field.Create(startingColumn, startingRow - i))).IsOccupied)
+                    case Direction.Right:
+                        for (int i = 0; i < shipSize; i++)
+                        {
+                            if (Fields.First(field => field.Equals(Field.Create(startingColumn + i, startingRow))).IsOccupied)
+                                break;
+                            currentShipCoordinates.Add(Coordinate.Create(startingColumn + i, startingRow));
+                        }
                         break;
-                    currentShipCoordinates.Add(Coordinate.Create(startingColumn, startingRow - i));
+                    default:
+                        break;
                 }
-
-            success = currentShipCoordinates.Count == shipSize;
-            if (success)
-                AddShip(currentShipCoordinates);
-
-            currentShipCoordinates = new List<Coordinate>();
-            return success;
+                return currentShipCoordinates;
+            }
+            catch(InvalidOperationException ex)
+            {
+                return new List<Coordinate>();
+            }
+            
         }
 
         private void AddShip(List<Coordinate> destroyerCoordinates)
@@ -118,7 +129,11 @@ namespace ConsoleApp.GameElements
                 foreach (var column in Enum.GetValues(typeof(Column)))
                 {
                     var field = Fields.SingleOrDefault(x => x.Coordinate.Row == (Row)row && x.Coordinate.Column == (Column)column);
-                    if (field.Missed)
+                    if (field.IsOccupied)
+                    {
+                        Console.Write('x');
+                    }
+                    else if (field.Missed)
                     {
                         Console.Write('o');
                     }
@@ -192,9 +207,9 @@ namespace ConsoleApp.GameElements
             if (shipHit != null)
                 shipHit.Hit(coord);
 
-            if (Ships.Any(x => x.HasSinked && x.Presences.Any(y => y.Coordinate.Equals(coord))))
+            if (Ships.Any(x => x.HasSunk && x.Presences.Any(y => y.Coordinate.Equals(coord))))
             {
-                var sinkedShip = Ships.First(ship => ship.HasSinked && ship.Presences.Any(presence => presence.Coordinate.Equals(coord)));
+                var sinkedShip = Ships.First(ship => ship.HasSunk && ship.Presences.Any(presence => presence.Coordinate.Equals(coord)));
                 //MarkAround(sinkedShip);
             }
             PrintBattlefield();
