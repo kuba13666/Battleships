@@ -72,5 +72,14 @@ namespace Tests
             }
             Assert.True(battlefield.IsGameWon());
         }
+
+        [Fact]
+        public void GivenStartingPointAndDirectionItGivesYouNextFieldColumnAndRow()
+        {
+            var (currentColumn, currentRow) = Battlefield.GetRowAndColumn(Column.A, Row.zeroed, Direction.Down, 1);
+
+            Assert.Equal(Column.A, currentColumn);
+            Assert.Equal(Row.first, currentRow);
+        }
     }
 }

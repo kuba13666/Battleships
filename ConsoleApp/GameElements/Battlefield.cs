@@ -54,64 +54,48 @@ namespace ConsoleApp.GameElements
             AddShip(currentShipFields);
         }
 
+        public static (Column, Row) GetRowAndColumn(Column startingColumn, Row startingRow, Direction direction, int index)
+        {
+            switch (direction)
+            {
+                case Direction.Up:
+                    return (startingColumn, startingRow - index);
+                case Direction.Down:
+                    return (startingColumn, startingRow + index);
+                case Direction.Left:
+                    return (startingColumn - index, startingRow);
+                case Direction.Right:
+                    return (startingColumn + index, startingRow);
+                default:
+                    return (0, 0);
+            }
+        }
+
         public List<Field> FindASpotForShip(int shipSize, Column startingColumn, Row startingRow, Direction direction)
         {
             var currentShipFields = new List<Field>();
             try
             {
-                switch (direction)
+                for (int i = 0; i < shipSize; i++)
                 {
-                    case Direction.Up:
-                        for (int i = 0; i < shipSize; i++)
-                        {
-                            var field = Fields.FirstOrDefault(field => field.Equals(Field.Create(startingColumn, startingRow - i)));
-                            if (field == null || field.IsOccupied)
-                                break;
-                            currentShipFields.Add(field);
-                        }
+                    var (currentColumn, currentRow) = GetRowAndColumn(startingColumn, startingRow, direction, i);
+                    var field = Fields.FirstOrDefault(field => field.Equals(Field.Create(currentColumn, currentRow)));
+                    if (field == null || field.IsOccupied)
                         break;
-                    case Direction.Down:
-                        for (int i = 0; i < shipSize; i++)
-                        {
-                            var field = Fields.FirstOrDefault(field => field.Equals(Field.Create(startingColumn, startingRow + i)));
-                            if (field == null || field.IsOccupied)
-                                break;
-                            currentShipFields.Add(field);
-                        }
-                        break;
-                    case Direction.Left:
-                        for (int i = 0; i < shipSize; i++)
-                        {
-                            var field = Fields.FirstOrDefault(field => field.Equals(Field.Create(startingColumn - i, startingRow)));
-                            if (field == null || field.IsOccupied)
-                                break;
-                            currentShipFields.Add(field);
-                        }
-                        break;
-                    case Direction.Right:
-                        for (int i = 0; i < shipSize; i++)
-                        {
-                            var field = Fields.FirstOrDefault(field => field.Equals(Field.Create(startingColumn + i, startingRow)));
-                            if (field == null || field.IsOccupied)
-                                break;
-                            currentShipFields.Add(field);
-                        }
-                        break;
-                    default:
-                        break;
+                    currentShipFields.Add(field);
                 }
                 return currentShipFields;
             }
-            catch(InvalidOperationException ex)
+            catch (InvalidOperationException ex)
             {
                 return new List<Field>();
             }
-            
+
         }
 
         private void AddShip(List<Field> shipFields)
         {
-            var fields = Fields.Where(field => shipFields.Contains(field)).ToList() ;
+            var fields = Fields.Where(field => shipFields.Contains(field)).ToList();
             _ships.Add(Ship.Create(fields));
             foreach (var field in fields)
             {
