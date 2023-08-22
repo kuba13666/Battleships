@@ -67,7 +67,7 @@ namespace ConsoleApp.GameElements
                 case Direction.Right:
                     return (startingColumn + index, startingRow);
                 default:
-                    return (0, 0);
+                    throw new IndexOutOfRangeException();
             }
         }
 
@@ -86,7 +86,7 @@ namespace ConsoleApp.GameElements
                 }
                 return currentShipFields;
             }
-            catch (InvalidOperationException ex)
+            catch (IndexOutOfRangeException ex)
             {
                 return new List<Field>();
             }
